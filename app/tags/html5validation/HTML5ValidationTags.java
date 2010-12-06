@@ -94,10 +94,10 @@ import play.templates.GroovyTemplate.ExecutableTemplate;
  *
  *      <p>The tag will then output the following HTML code:</p><br>
  *
- *      <p><code>&lt;input name="user.name" value="${user.name}" id="YourID" class="class1 class2" required
+ *      <p><code>&lt;input name="user.name" value="${field.value}" id="YourID" class="class1 class2" required
  *      maxlength="8"&gt;</code></p><br>
  *
- *      <p><strong>Note</strong>: The <code>${user.name}</code> expression will actually be resolved to the
+ *      <p><strong>Note</strong>: The <code>${field.value}</code> expression will actually be resolved to the
  *      current value of that instance field.</p>
  *  </li>
  *  <li>
@@ -170,17 +170,18 @@ public final class HTML5ValidationTags extends FastTags {
             out.println(">");
 
         } catch (SecurityException exception) {
-            throw new TemplateCompilationException(null, fromLine, exception.getMessage()); // TODO: Instead of null pass template.template
+            // TODO: Instead of null pass template.template
+            throw new TemplateCompilationException(null, fromLine, exception.getMessage());
         } catch (NoSuchFieldException exception) {
             throw new TemplateCompilationException(null, fromLine, exception.getMessage());
         } catch (IllegalArgumentException exception) {
             throw new TemplateCompilationException(null, fromLine, exception.getMessage());
         } catch (ClassNotFoundException exception) {
-        	throw new TemplateCompilationException(null, fromLine, exception.getMessage());
-		}
+            throw new TemplateCompilationException(null, fromLine, exception.getMessage());
+        }
     }
 
-	/**
+    /**
      * <p>Print all standard attributes which have to be specified by the user itself.</p>
      *
      * @param args  The map containing the wanted attributes.
@@ -188,9 +189,9 @@ public final class HTML5ValidationTags extends FastTags {
      */
     private static void printStandardAttributes(Map<?, ?> args, PrintWriter out) {
         for (String attribute : STANDARD_ATTRIBUTES) {
-        	if (args.containsKey(attribute) && args.get(attribute) != null) {
-        		printAttribute(attribute, args.get(attribute).toString(), out);
-        	}
+            if (args.containsKey(attribute) && args.get(attribute) != null) {
+                printAttribute(attribute, args.get(attribute).toString(), out);
+            }
         }
     }
 
@@ -205,21 +206,21 @@ public final class HTML5ValidationTags extends FastTags {
      * @throws NoSuchFieldException         Thrown when the field can't be reached.
      * @throws ClassNotFoundException 		Thrown when the class could not be found.
      */
-    private static void printValidationAttributes(Map<?, ?> args, PrintWriter out) throws ClassNotFoundException, 
+    private static void printValidationAttributes(Map<?, ?> args, PrintWriter out) throws ClassNotFoundException,
             SecurityException, NoSuchFieldException {
-    	final String fieldname = args.get("for").toString();
-    	final String[] components = fieldname.split("\\.");
-    	
-    	Class<?> clazz = null;
-    	
-    	for (Class<?> current : Play.classloader.getAllClasses()) {
-    		if (current.getSimpleName().equalsIgnoreCase(components[0])) {
-    			clazz = current;
-    		}
-    	}
-    	
-    	final Field field = clazz.getField(components[1]);
-    	
+        final String fieldname = args.get("for").toString();
+        final String[] components = fieldname.split("\\.");
+
+        Class<?> clazz = null;
+
+        for (Class<?> current : Play.classloader.getAllClasses()) {
+            if (current.getSimpleName().equalsIgnoreCase(components[0])) {
+                clazz = current;
+            }
+        }
+
+        final Field field = clazz.getField(components[1]);
+
         // Print the name of the field
         printAttribute("name", fieldname, out);
 
@@ -269,16 +270,18 @@ public final class HTML5ValidationTags extends FastTags {
     }
 
     /**
-	 * @param args
-	 * @param out
-	 */
-	private static void printAdditionalAttributes(Map<?, ?> args, PrintWriter out) {
-		if (args.containsKey("attributes")) {
-			out.print(" " + args.get("attributes"));
-		}
-	}
+     * <p>Prints additional attributes passed in through the <code>attributes</code> attribute.</p>
+     * 
+     * @param args	The tag attributes.
+     * @param out	The print writer to use.
+     */
+    private static void printAdditionalAttributes(Map<?, ?> args, PrintWriter out) {
+        if (args.containsKey("attributes")) {
+            out.print(" " + args.get("attributes"));
+        }
+    }
 
-	/**
+    /**
      * <p>Prints a single attribute using a given print writer.</p>
      *
      * @param name      The name of the attribute to print.
