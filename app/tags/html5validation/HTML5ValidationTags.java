@@ -25,13 +25,12 @@ import groovy.lang.Closure;
 
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import play.Play;
 import play.data.validation.Email;
 import play.data.validation.Match;
 import play.data.validation.Max;
@@ -44,8 +43,6 @@ import play.db.Model;
 import play.exceptions.TemplateCompilationException;
 import play.templates.FastTags;
 import play.templates.GroovyTemplate.ExecutableTemplate;
-import play.templates.JavaExtensions;
-import play.templates.TagContext;
 
 /**
  * <h1>Overview</h1>
@@ -53,20 +50,20 @@ import play.templates.TagContext;
  * replacement for existing HTML5 <code>&lt;input&gt;</code> elements.</p>
  *
  * <p>The <code>#{input /}</code> will try to map existing data validation annotations from your Play! model
- * to the HTML5 input element and thus provide codeless client-side validation without using JavaScript.</p>
+ * to the HTML5 input element and thus provide near codeless client-side validation without using JavaScript.</p>
  *
  * <p>On top of that it supports all available attributes from the original HTML5 input element and auto-
- * fills the <code>name</code> and <code>value</code> attributes by default.</p>
+ * fills the <code>name</code> attribute by default.</p>
  *
  * <p>For that to work you have to specify the model instance and its field you want to map by using the
- * field attribute:<br>
+ * <em>for</em> attribute:<br>
  * <br>
- * <code>#{input field:'user.name' /}</code></p><br>
+ * <code>#{input for:'user.name', value:field.value /}</code></p><br>
  * 
  * <p>In addition to the {@link #STANDARD_ATTRIBUTES standard attributes} this tags supports the following extra
  * attributes:
  *  <ul>
- *      <li><strong>field</strong>: Used to specify the model instance and the models field.</li>
+ *      <li><strong>for</strong>: Used to specify the model instance and the models field.</li>
  *      <li><strong>attributes</strong>: Used to declare additional attributes</li>
  *  </ul>
  * </p>
@@ -93,7 +90,7 @@ import play.templates.TagContext;
  *      <p>and you pass an instance of that class called <em>user</em> around, you then can
  *      specify the field from that instance inside the <code>#{input /}</code> as follows:</p>
  *
- *      <p><code>#{input field:'user.name', id='YourID', class='class1 clas2' /}</code></p><br>
+ *      <p><code>#{input for:'user.name', id:'YourID', class:'class1 clas2', value:field.value /}</code></p><br>
  *
  *      <p>The tag will then output the following HTML code:</p><br>
  *
@@ -109,7 +106,7 @@ import play.templates.TagContext;
  *      <code>data-validate</code> you use the <em>attributes</em> attribute from the <code>#{input /}</code>
  *      tag:</p><br>
  *      
- *      <p><code>#{input field:'user.name', attributes:'data-validate="..."' /}</code></p><br>
+ *      <p><code>#{input for:'user.name', value:field.value, attributes:'data-validate="..."' /}</code></p><br>
  *      
  *      <p>This produces the following HTML code:</p><br>
  *      
@@ -120,6 +117,7 @@ import play.templates.TagContext;
  * <h1>How to help</h1>
  * <ul>
  *  <li>Test the tag and write back about errors, bugs and wishes.</li>
+ *  <li>Figure out how to get the current value of a specific field so we can autofill this too.</li>
  * </ul>
  *
  * @author  Sebastian Hoß (mail@shoss.de)
@@ -129,7 +127,6 @@ import play.templates.TagContext;
   				validations by Play!</a>
  * @see     <a href="http://diveintohtml5.org/forms.html">Mark Pilgrim on HTML5 Forms</a>
  */
-//@FastTags.Namespace("html")
 public final class HTML5ValidationTags extends FastTags {
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -140,7 +137,7 @@ public final class HTML5ValidationTags extends FastTags {
     private static final List<String> STANDARD_ATTRIBUTES = Arrays.asList("type", "id", "class", "form", 
         "placeholder", "list", "step", "dir", "draggable", "hidden", "accesskey", "contenteditable",
         "contextmenu", "lang", "spellcheck", "style", "tabindex", "title", "disabled", "autocomplete",
-        "autofocus", "checked");
+        "autofocus", "checked", "value");
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     // *                                             METHODS                                             *
@@ -163,11 +160,11 @@ public final class HTML5ValidationTags extends FastTags {
             // Print standard attributes
             printStandardAttributes(args, out);
 
-            // Print derived attributes
-            printDerivedAttributes(args.get("field").toString(), args, body, out);
+            // Print validation attributes
+            printValidationAttributes(args, out);
 
             // Print additional attributes
-            out.print(" " + args.get("attributes"));
+            printAdditionalAttributes(args, out);
 
             // Close input tag
             out.println(">");
@@ -176,18 +173,14 @@ public final class HTML5ValidationTags extends FastTags {
             throw new TemplateCompilationException(null, fromLine, exception.getMessage()); // TODO: Instead of null pass template.template
         } catch (NoSuchFieldException exception) {
             throw new TemplateCompilationException(null, fromLine, exception.getMessage());
-        } catch (NoSuchMethodException exception) {
-            throw new TemplateCompilationException(null, fromLine, exception.getMessage());
         } catch (IllegalArgumentException exception) {
             throw new TemplateCompilationException(null, fromLine, exception.getMessage());
-        } catch (IllegalAccessException exception) {
-            throw new TemplateCompilationException(null, fromLine, exception.getMessage());
-        } catch (InvocationTargetException exception) {
-            throw new TemplateCompilationException(null, fromLine, exception.getMessage());
-        }
+        } catch (ClassNotFoundException exception) {
+        	throw new TemplateCompilationException(null, fromLine, exception.getMessage());
+		}
     }
 
-    /**
+	/**
      * <p>Print all standard attributes which have to be specified by the user itself.</p>
      *
      * @param args  The map containing the wanted attributes.
@@ -195,14 +188,14 @@ public final class HTML5ValidationTags extends FastTags {
      */
     private static void printStandardAttributes(Map<?, ?> args, PrintWriter out) {
         for (String attribute : STANDARD_ATTRIBUTES) {
-        	if (args.containsKey(attribute)) {
+        	if (args.containsKey(attribute) && args.get(attribute) != null) {
         		printAttribute(attribute, args.get(attribute).toString(), out);
         	}
         }
     }
 
     /**
-     * <p>Prints derived attributes for a given field.</p>
+     * <p>Prints validation attributes for a given field.</p>
      * 
      * @param fieldname                     The name of the field.
      * @param args                          The tag attributes.
@@ -210,28 +203,25 @@ public final class HTML5ValidationTags extends FastTags {
      * @param out                           The print writer to use.
      * @throws SecurityException            Thrown when either the field or the getter for the field can't be reached.
      * @throws NoSuchFieldException         Thrown when the field can't be reached.
-     * @throws NoSuchMethodException        Thrown when the getter for the field can't be reached.
-     * @throws IllegalArgumentException     Thrown when the getter invocation failed on the given argument.
-     * @throws IllegalAccessException       Thrown when the resolved method can't access the field.
-     * @throws InvocationTargetException    Thrown when other invocation exceptions occur.
+     * @throws ClassNotFoundException 		Thrown when the class could not be found.
      */
-    private static void printDerivedAttributes(String fieldname, Map<?, ?> args, Closure body, PrintWriter out) 
-        throws SecurityException, NoSuchFieldException, NoSuchMethodException, IllegalArgumentException, 
-            IllegalAccessException, InvocationTargetException {
+    private static void printValidationAttributes(Map<?, ?> args, PrintWriter out) throws ClassNotFoundException, 
+            SecurityException, NoSuchFieldException {
+    	final String fieldname = args.get("for").toString();
+    	final String[] components = fieldname.split("\\.");
+    	
+    	Class<?> clazz = null;
+    	
+    	for (Class<?> current : Play.classloader.getAllClasses()) {
+    		if (current.getSimpleName().equalsIgnoreCase(components[0])) {
+    			clazz = current;
+    		}
+    	}
+
+    	final Field field = clazz.getField(components[1]);
+    	
         // Print the name of the field
         printAttribute("name", fieldname, out);
-
-        // Print the value of the field
-        final String[] components = fieldname.split("\\.");
-        
-//        TagContext.parent().data.get(components[0])
-//        final Object object = body.getProperty(components[0]);
-        
-        final Object object = TagContext.parent().data.get(components[0]);
-        final Class<?> clazz = object.getClass();
-        final Field field = clazz.getField(components[1]);
-        final Method getter = clazz.getMethod("get" + JavaExtensions.capFirst(field.getName()));
-        printAttribute("value", getter.invoke(object).toString(), out);
 
         // Mark readonly
         if (Modifier.isFinal(field.getModifiers()) || args.containsKey("readonly")) {
@@ -274,11 +264,21 @@ public final class HTML5ValidationTags extends FastTags {
         }
 
         if (field.isAnnotationPresent(Email.class)) {
-        printAttribute("type", "email", out);
+        	printAttribute("type", "email", out);
         }
     }
 
     /**
+	 * @param args
+	 * @param out
+	 */
+	private static void printAdditionalAttributes(Map<?, ?> args, PrintWriter out) {
+		if (args.containsKey("attributes")) {
+			out.print(" " + args.get("attributes"));
+		}
+	}
+
+	/**
      * <p>Prints a single attribute using a given print writer.</p>
      *
      * @param name      The name of the attribute to print.

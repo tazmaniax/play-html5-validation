@@ -13,10 +13,13 @@ module.html5validation=${play.path}/modules/html5validation-1.0
 
 h2. <a>Usage</a>
 
-p. To use this module, simply replace those @<input>@ elements which need validation with the @#{input /}@ tag and specify the field in the corresponding model class. You can use all available attributes from the original HTML5 @<input>@ element as well. Additional attributes can be set using the @attributes@ attribute.
+p. To use this module, simply replace those @<input>@ elements which need validation with the @#{input /}@ tag and specify the field from the corresponding model class. You can use all available attributes from the original HTML5 @<input>@ element as well. Additional attributes can be set using the @attributes@ attribute.
 
 p. The list of available attributes is as follows:
 
+* *for*: Specifies the field to validate.
+* *value*: Specifies a value for the input element.
+* *attributes*: Additional attributes not yet covered by the @#{input /}@ tag.
 * *type*: Specifies the content type of the input element.
 * *id*: A unique identifier for the element.
 * *class*: A name of a classification, or list of names of classifications, to which the element belongs.
@@ -39,8 +42,6 @@ p. The list of available attributes is as follows:
 * *autofocus*:Specifies that the element represents a control to which a UA is meant to give focus as soon as the document is loaded.
 * *checked*: Specifies that the element represents a selected control.
 * *step*: Specifies the value granularity of the element’s value.
-* *attributes*: Additional attributes not yet covered by the @#{input /}@ tag.
-* *field*: The field to validate.
 
 
 h2. <a>Supported Annotations</a>
