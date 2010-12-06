@@ -3,7 +3,7 @@ h1. HTML5 Validation
 p. The HTML5 validation module provides a drop-in replacement for HTML @<input>@ elements called @#{input /}@  which automatically adds HTML5 validation attributes to the final output based on your Play! model validation annotations. 
 
 
-h2. <a>Enable the content negotiation module</a>
+h2. <a>Enable the HTML5 validation module</a>
 
 p. In the */conf/application.conf* file, enable the HTML5 validation module by adding this line:
 
