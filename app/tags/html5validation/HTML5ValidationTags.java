@@ -105,11 +105,11 @@ import play.templates.GroovyTemplate.ExecutableTemplate;
  *      <p>When you want to give the final <code>&lt;input&gt;</code> some additional attributes like
  *      <code>data-validate</code> you use the <em>attributes</em> attribute from the <code>#{input /}</code>
  *      tag:</p><br>
- *      
+ * 
  *      <p><code>#{input for:'user.name', value:field.value, attributes:'data-validate="..."' /}</code></p><br>
- *      
+ * 
  *      <p>This produces the following HTML code:</p><br>
- *      
+ * 
  *      <p><code>&lt;input name="user.name" value="${user.name}" data-validate="..."&gt;</code></p>
  *  </li>
  * </ol>
@@ -123,7 +123,7 @@ import play.templates.GroovyTemplate.ExecutableTemplate;
  * @author  Sebastian Hoß (mail@shoss.de)
  * @version 1.0
  * @see     <a href="http://www.w3.org/TR/html-markup/input.html">HTML5 Input Element</a>
- * @see     <a href="http://www.playframework.org/documentation/1.1/validation-builtin">Built-in 
+ * @see     <a href="http://www.playframework.org/documentation/1.1/validation-builtin">Built-in
   				validations by Play!</a>
  * @see     <a href="http://diveintohtml5.org/forms.html">Mark Pilgrim on HTML5 Forms</a>
  */
@@ -134,10 +134,10 @@ public final class HTML5ValidationTags extends FastTags {
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
     /** A list of standard attributes which can be found on HTML5 <code>&lt;input&gt;</code> elements. */
-    private static final List<String> STANDARD_ATTRIBUTES = Arrays.asList("type", "id", "class", "form", 
-        "placeholder", "list", "step", "dir", "draggable", "hidden", "accesskey", "contenteditable",
-        "contextmenu", "lang", "spellcheck", "style", "tabindex", "title", "disabled", "autocomplete",
-        "autofocus", "checked", "value");
+    private static final List<String> STANDARD_ATTRIBUTES = Arrays.asList("type", "id", "class", "form",
+            "placeholder", "list", "step", "dir", "draggable", "hidden", "accesskey", "contenteditable",
+            "contextmenu", "lang", "spellcheck", "style", "tabindex", "title", "disabled", "autocomplete",
+            "autofocus", "checked", "value");
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     // *                                             METHODS                                             *
@@ -152,7 +152,8 @@ public final class HTML5ValidationTags extends FastTags {
      * @param template  The parent template.
      * @param fromLine  The current execution line.
      */
-    public static void _input(Map<?, ?> args, Closure body, PrintWriter out, ExecutableTemplate template, int fromLine) {
+    public static void _input(final Map<?, ?> args, final Closure body, final PrintWriter out,
+            final ExecutableTemplate template, final int fromLine) {
         try {
             // Open input tag
             out.print("<input");
@@ -169,14 +170,14 @@ public final class HTML5ValidationTags extends FastTags {
             // Close input tag
             out.println(">");
 
-        } catch (SecurityException exception) {
+        } catch (final SecurityException exception) {
             // TODO: Instead of null pass template.template
             throw new TemplateCompilationException(null, fromLine, exception.getMessage());
-        } catch (NoSuchFieldException exception) {
+        } catch (final NoSuchFieldException exception) {
             throw new TemplateCompilationException(null, fromLine, exception.getMessage());
-        } catch (IllegalArgumentException exception) {
+        } catch (final IllegalArgumentException exception) {
             throw new TemplateCompilationException(null, fromLine, exception.getMessage());
-        } catch (ClassNotFoundException exception) {
+        } catch (final ClassNotFoundException exception) {
             throw new TemplateCompilationException(null, fromLine, exception.getMessage());
         }
     }
@@ -187,9 +188,9 @@ public final class HTML5ValidationTags extends FastTags {
      * @param args  The map containing the wanted attributes.
      * @param out   The print writer to use.
      */
-    private static void printStandardAttributes(Map<?, ?> args, PrintWriter out) {
-        for (String attribute : STANDARD_ATTRIBUTES) {
-            if (args.containsKey(attribute) && args.get(attribute) != null) {
+    private static void printStandardAttributes(final Map<?, ?> args, final PrintWriter out) {
+        for (final String attribute : STANDARD_ATTRIBUTES) {
+            if (args.containsKey(attribute) && (args.get(attribute) != null)) {
                 printAttribute(attribute, args.get(attribute).toString(), out);
             }
         }
@@ -206,14 +207,14 @@ public final class HTML5ValidationTags extends FastTags {
      * @throws NoSuchFieldException         Thrown when the field can't be reached.
      * @throws ClassNotFoundException 		Thrown when the class could not be found.
      */
-    private static void printValidationAttributes(Map<?, ?> args, PrintWriter out) throws ClassNotFoundException,
-            SecurityException, NoSuchFieldException {
+    private static void printValidationAttributes(final Map<?, ?> args, final PrintWriter out) throws ClassNotFoundException,
+    SecurityException, NoSuchFieldException {
         final String fieldname = args.get("for").toString();
         final String[] components = fieldname.split("\\.");
 
         Class<?> clazz = null;
 
-        for (Class<?> current : Play.classloader.getAllClasses()) {
+        for (final Class<?> current : Play.classloader.getAllClasses()) {
             if (current.getSimpleName().equalsIgnoreCase(components[0])) {
                 clazz = current;
             }
@@ -265,7 +266,7 @@ public final class HTML5ValidationTags extends FastTags {
         }
 
         if (field.isAnnotationPresent(Email.class)) {
-        	printAttribute("type", "email", out);
+            printAttribute("type", "email", out);
         }
     }
 
@@ -275,7 +276,7 @@ public final class HTML5ValidationTags extends FastTags {
      * @param args	The tag attributes.
      * @param out	The print writer to use.
      */
-    private static void printAdditionalAttributes(Map<?, ?> args, PrintWriter out) {
+    private static void printAdditionalAttributes(final Map<?, ?> args, final PrintWriter out) {
         if (args.containsKey("attributes")) {
             out.print(" " + args.get("attributes"));
         }
