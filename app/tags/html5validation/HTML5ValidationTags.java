@@ -173,13 +173,13 @@ public final class HTML5ValidationTags extends FastTags {
 
         } catch (final SecurityException exception) {
             // TODO: Instead of null pass template.template
-            throw new TemplateCompilationException(null, fromLine, exception.getMessage());
+            throw new TemplateCompilationException(null, Integer.valueOf(fromLine), exception.getMessage());
         } catch (final NoSuchFieldException exception) {
-            throw new TemplateCompilationException(null, fromLine, exception.getMessage());
+            throw new TemplateCompilationException(null, Integer.valueOf(fromLine), exception.getMessage());
         } catch (final IllegalArgumentException exception) {
-            throw new TemplateCompilationException(null, fromLine, exception.getMessage());
+            throw new TemplateCompilationException(null, Integer.valueOf(fromLine), exception.getMessage());
         } catch (final ClassNotFoundException exception) {
-            throw new TemplateCompilationException(null, fromLine, exception.getMessage());
+            throw new TemplateCompilationException(null, Integer.valueOf(fromLine), exception.getMessage());
         }
     }
 
