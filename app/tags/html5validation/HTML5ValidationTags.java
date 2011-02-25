@@ -25,6 +25,8 @@ import groovy.lang.Closure;
 
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
@@ -41,8 +43,10 @@ import play.data.validation.Required;
 import play.data.validation.URL;
 import play.db.Model;
 import play.exceptions.TemplateCompilationException;
+import play.mvc.Scope.RenderArgs;
 import play.templates.FastTags;
 import play.templates.GroovyTemplate.ExecutableTemplate;
+import play.templates.JavaExtensions;
 
 /**
  * <h1>Overview</h1>
@@ -90,15 +94,12 @@ import play.templates.GroovyTemplate.ExecutableTemplate;
  *      <p>and you pass an instance of that class called <em>user</em> around, you then can
  *      specify the field from that instance inside the <code>#{input /}</code> as follows:</p>
  *
- *      <p><code>#{input for:'user.name', id:'YourID', class:'class1 clas2', value:field.value /}</code></p><br>
+ *      <p><code>#{input for:'user.name', id:'YourID', class:'class1 clas2' /}</code></p><br>
  *
  *      <p>The tag will then output the following HTML code:</p><br>
  *
- *      <p><code>&lt;input name="user.name" value="${field.value}" id="YourID" class="class1 class2" required
+ *      <p><code>&lt;input name="user.name" value="${user?.name}" id="YourID" class="class1 class2" required
  *      maxlength="8"&gt;</code></p><br>
- *
- *      <p><strong>Note</strong>: The <code>${field.value}</code> expression will actually be resolved to the
- *      current value of that instance field.</p>
  *  </li>
  *  <li>
  *      <p>Using additional attributes</p>
@@ -106,18 +107,17 @@ import play.templates.GroovyTemplate.ExecutableTemplate;
  *      <code>data-validate</code> you use the <em>attributes</em> attribute from the <code>#{input /}</code>
  *      tag:</p><br>
  * 
- *      <p><code>#{input for:'user.name', value:field.value, attributes:'data-validate="..."' /}</code></p><br>
+ *      <p><code>#{input for:'user.name', attributes:'data-validate="..."' /}</code></p><br>
  * 
  *      <p>This produces the following HTML code:</p><br>
  * 
- *      <p><code>&lt;input name="user.name" value="${user.name}" data-validate="..."&gt;</code></p>
+ *      <p><code>&lt;input name="user.name" value="${user?.name}" data-validate="..."&gt;</code></p>
  *  </li>
  * </ol>
  *
  * <h1>How to help</h1>
  * <ul>
  *  <li>Test the tag and write back about errors, bugs and wishes.</li>
- *  <li>Figure out how to get the current value of a specific field so we can autofill this too.</li>
  * </ul>
  *
  * @author  Sebastian Hoß (mail@shoss.de)
@@ -224,6 +224,29 @@ public final class HTML5ValidationTags extends FastTags {
         // Print the name of the field
         printAttribute("name", fieldname, out);
 
+        // Print the value of the field
+        final Object object = RenderArgs.current().get(components[0], clazz);
+        if (object != null){
+            try {
+                try {
+                    // Try to use the getter if any exists
+                    final Method getter = clazz.getMethod("get" + JavaExtensions.capFirst(field.getName()));
+
+                    // Print the value returned by the getter
+                    printAttribute("value", getter.invoke(object), out);
+                } catch (final NoSuchMethodException  e) {
+                    // No getter exists
+
+                    // Print the current value of the field inside the current object
+                    printAttribute("value", field.get(object), out);
+                }
+            } catch (final IllegalAccessException exception) {
+                // print nothing
+            } catch (final InvocationTargetException exception) {
+                // print nothing
+            }
+        }
+
         // Mark readonly
         if (Modifier.isFinal(field.getModifiers()) || args.containsKey("readonly")) {
             printAttribute("readonly", "readonly", out);
@@ -283,13 +306,17 @@ public final class HTML5ValidationTags extends FastTags {
 
     /**
      * <p>Prints a single attribute using a given print writer.</p>
+     * 
+     * <p>If <code>null</code> is given as value nothing will be printed to eliminate empty attributes.</p>
      *
      * @param name      The name of the attribute to print.
      * @param value     The value of the attribute to print.
      * @param out       The print writer to use.
      */
-    private static void printAttribute(final String name, final String value, final PrintWriter out) {
-        out.print(" " + name + "=\"" + value + "\"");
+    private static void printAttribute(final String name, final Object value, final PrintWriter out) {
+        if (value != null) {
+            out.print(" " + name + "=\"" + value + "\"");
+        }
     }
 
 }
