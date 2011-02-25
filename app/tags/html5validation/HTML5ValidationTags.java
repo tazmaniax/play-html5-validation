@@ -127,6 +127,7 @@ import play.templates.GroovyTemplate.ExecutableTemplate;
   				validations by Play!</a>
  * @see     <a href="http://diveintohtml5.org/forms.html">Mark Pilgrim on HTML5 Forms</a>
  */
+@SuppressWarnings("nls")
 public final class HTML5ValidationTags extends FastTags {
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
