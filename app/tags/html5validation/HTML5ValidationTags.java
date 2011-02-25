@@ -134,7 +134,7 @@ public final class HTML5ValidationTags extends FastTags {
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
     /** A list of standard attributes which can be found on HTML5 <code>&lt;input&gt;</code> elements. */
-    private static final List<String> STANDARD_ATTRIBUTES = Arrays.asList("type", "id", "class", "form",
+    public static final List<String> STANDARD_ATTRIBUTES = Arrays.asList("type", "id", "class", "form",
             "placeholder", "list", "step", "dir", "draggable", "hidden", "accesskey", "contenteditable",
             "contextmenu", "lang", "spellcheck", "style", "tabindex", "title", "disabled", "autocomplete",
             "autofocus", "checked", "value");
