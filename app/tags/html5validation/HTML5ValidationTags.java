@@ -62,7 +62,7 @@ import play.templates.JavaExtensions;
  * <p>For that to work you have to specify the model instance and its field you want to map by using the
  * <em>for</em> attribute:<br>
  * <br>
- * <code>#{input for:'user.name', value:field.value /}</code></p><br>
+ * <code>#{input for:'user.name' /}</code></p><br>
  * 
  * <p>In addition to the {@link #STANDARD_ATTRIBUTES standard attributes} this tags supports the following extra
  * attributes:
