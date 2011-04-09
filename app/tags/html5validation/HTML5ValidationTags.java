@@ -84,24 +84,12 @@ import play.templates.JavaExtensions;
  *      <p>and you pass an instance of that class called <em>user</em> around, you then can
  *      specify the field from that instance inside the <code>#{input /}</code> as follows:</p>
  *
- *      <p><code>#{input for:'user.name', id:'YourID', class:'class1 clas2' /}</code></p><br>
+ *      <p><code>#{input for:'user.name', id:'yourID', class:'class1 clas2' /}</code></p><br>
  *
  *      <p>The tag will then output the following HTML code:</p><br>
  *
- *      <p><code>&lt;input name="user.name" value="${user?.name}" id="YourID" class="class1 class2" required
+ *      <p><code>&lt;input name="user.name" value="${user?.name}" id="yourID" class="class1 class2" required
  *      maxlength="8"&gt;</code></p><br>
- *  </li>
- *  <li>
- *      <p>Using additional attributes</p>
- *      <p>When you want to give the final <code>&lt;input&gt;</code> some additional attributes like
- *      <code>data-validate</code> you use the <em>attributes</em> attribute from the <code>#{input /}</code>
- *      tag:</p><br>
- * 
- *      <p><code>#{input for:'user.name', attributes:'data-validate="..."' /}</code></p><br>
- * 
- *      <p>This produces the following HTML code:</p><br>
- * 
- *      <p><code>&lt;input name="user.name" value="${user?.name}" data-validate="..."&gt;</code></p>
  *  </li>
  * </ol>
  *

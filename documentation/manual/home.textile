@@ -28,11 +28,11 @@ public String name;
 
 p. you can replace your existing @<input>@ element with the following:
 
-pre. #{input for:'user.name', id:'YourID', class:'class1 class2' /}
+pre. #{input for:'user.name', id:'yourID', class:'class1 class2' /}
 
 The tag will then output the following HTML code:
 
-pre. <input name="user.name" value="${user?.name}" id="YourID" class="class1 class2" required maxlength="8" pattern="[a-z]*">
+pre. <input name="user.name" value="${user?.name}" id="yourID" class="class1 class2" required maxlength="8" pattern="[a-z]*">
 
 p. Note: @${user?.name}@ will actually be resolved to its current value.
 
