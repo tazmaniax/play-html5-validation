@@ -28,8 +28,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 import play.Play;
@@ -53,7 +51,7 @@ import play.templates.JavaExtensions;
  * <p>The HTML5 validation tags provide a simple <code>#{input /}</code> tag which can be used as a drop-in
  * replacement for existing HTML5 <code>&lt;input&gt;</code> elements.</p>
  *
- * <p>The <code>#{input /}</code> will try to map existing data validation annotations from your Play! model
+ * <p>The <code>#{input /}</code> tag will try to map existing data validation annotations from your Play! model
  * to the HTML5 input element and thus provide near codeless client-side validation without using JavaScript.</p>
  *
  * <p>On top of that it supports all available attributes from the original HTML5 input element and auto-
@@ -62,16 +60,8 @@ import play.templates.JavaExtensions;
  * <p>For that to work you have to specify the model instance and its field you want to map by using the
  * <em>for</em> attribute:<br>
  * <br>
- * <code>#{input for:'user.name' /}</code></p><br>
+ * <code>#{input for:'user.name' /}</code></p>
  * 
- * <p>In addition to the {@link #STANDARD_ATTRIBUTES standard attributes} this tags supports the following extra
- * attributes:
- *  <ul>
- *      <li><strong>for</strong>: Used to specify the model instance and the models field.</li>
- *      <li><strong>attributes</strong>: Used to declare additional attributes</li>
- *  </ul>
- * </p>
- *
  * <h1>Caveats</h1>
  * <ul>
  *  <li>The MinSize validator can not be mapped to any HTML5 attribute currently.</li>
@@ -131,16 +121,6 @@ import play.templates.JavaExtensions;
 public final class HTML5ValidationTags extends FastTags {
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-    // *                                            CONSTANTS                                            *
-    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-
-    /** A list of standard attributes which can be found on HTML5 <code>&lt;input&gt;</code> elements. */
-    public static final List<String> STANDARD_ATTRIBUTES = Arrays.asList("type", "id", "class", "form",
-            "placeholder", "list", "step", "dir", "draggable", "hidden", "accesskey", "contenteditable",
-            "contextmenu", "lang", "spellcheck", "style", "tabindex", "title", "disabled", "autocomplete",
-            "autofocus", "checked", "value");
-
-    // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     // *                                             METHODS                                             *
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 
@@ -165,21 +145,17 @@ public final class HTML5ValidationTags extends FastTags {
             // Print validation attributes
             printValidationAttributes(args, out);
 
-            // Print additional attributes
-            printAdditionalAttributes(args, out);
-
             // Close input tag
             out.println(">");
 
         } catch (final SecurityException exception) {
-            // TODO: Instead of null pass template.template
-            throw new TemplateCompilationException(null, Integer.valueOf(fromLine), exception.getMessage());
+            throw new TemplateCompilationException(template.template, Integer.valueOf(fromLine), exception.getMessage());
         } catch (final NoSuchFieldException exception) {
-            throw new TemplateCompilationException(null, Integer.valueOf(fromLine), exception.getMessage());
+            throw new TemplateCompilationException(template.template, Integer.valueOf(fromLine), exception.getMessage());
         } catch (final IllegalArgumentException exception) {
-            throw new TemplateCompilationException(null, Integer.valueOf(fromLine), exception.getMessage());
+            throw new TemplateCompilationException(template.template, Integer.valueOf(fromLine), exception.getMessage());
         } catch (final ClassNotFoundException exception) {
-            throw new TemplateCompilationException(null, Integer.valueOf(fromLine), exception.getMessage());
+            throw new TemplateCompilationException(template.template, Integer.valueOf(fromLine), exception.getMessage());
         }
     }
 
@@ -190,9 +166,9 @@ public final class HTML5ValidationTags extends FastTags {
      * @param out   The print writer to use.
      */
     private static void printStandardAttributes(final Map<?, ?> args, final PrintWriter out) {
-        for (final String attribute : STANDARD_ATTRIBUTES) {
-            if (args.containsKey(attribute) && (args.get(attribute) != null)) {
-                printAttribute(attribute, args.get(attribute).toString(), out);
+        for (final Object attribute : args.keySet()) {
+            if (!"for".equalsIgnoreCase(attribute.toString()) && (args.get(attribute) != null)) {
+                printAttribute(attribute.toString(), args.get(attribute).toString(), out);
             }
         }
     }
@@ -211,6 +187,7 @@ public final class HTML5ValidationTags extends FastTags {
         final String fieldname = args.get("for").toString();
         final String[] components = fieldname.split("\\.");
 
+        // Find class
         Class<?> clazz = null;
 
         for (final Class<?> current : Play.classloader.getAllClasses()) {
@@ -219,6 +196,7 @@ public final class HTML5ValidationTags extends FastTags {
             }
         }
 
+        // Find field
         final Field field = clazz.getField(components[1]);
 
         // Print the name of the field
@@ -293,24 +271,12 @@ public final class HTML5ValidationTags extends FastTags {
     }
 
     /**
-     * <p>Prints additional attributes passed in through the <code>attributes</code> attribute.</p>
-     * 
-     * @param args	The tag attributes.
-     * @param out	The print writer to use.
-     */
-    private static void printAdditionalAttributes(final Map<?, ?> args, final PrintWriter out) {
-        if (args.containsKey("attributes")) {
-            out.print(" " + args.get("attributes"));
-        }
-    }
-
-    /**
      * <p>Prints a single attribute using a given print writer.</p>
      * 
      * <p>If <code>null</code> is given as value nothing will be printed to eliminate empty attributes.</p>
      *
      * @param name      The name of the attribute to print.
-     * @param value     The value of the attribute to print.
+     * @param value     The value of the attribute to print (may be <code>null</code>).
      * @param out       The print writer to use.
      */
     private static void printAttribute(final String name, final Object value, final PrintWriter out) {

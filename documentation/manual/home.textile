@@ -1,6 +1,6 @@
 h1. HTML5 Validation
 
-p. The HTML5 validation module provides a drop-in replacement for HTML @<input>@ elements called @#{input /}@  which automatically adds HTML5 validation attributes to the final output based on your Play! model validation annotations. 
+p. The HTML5 validation module provides a simple @#{input /}@ tag which can be used as a drop-in replacement for existing HTML @<input>@ elements. The @#{input /}@  tag will try to map existing data validation annotations from your Play! model to the HTML input element and thus provide near codeless client-side validation without even using JavaScript. On top of that it supports all available attributes from the original HTML input element and autofills the @name@ attribute by default.
 
 
 h2. <a>Enable the HTML5 validation module</a>
@@ -8,40 +8,13 @@ h2. <a>Enable the HTML5 validation module</a>
 p. In the */conf/application.conf* file, enable the HTML5 validation module by adding this line:
 
 bc. # The HTML5 validation module
-module.html5validation=${play.path}/modules/html5validation-1.1
+module.html5validation=${play.path}/modules/html5validation-1.2
 
 
 h2. <a>Usage</a>
 
-p. To use this module, simply replace those @<input>@ elements which need validation with the @#{input /}@ tag and specify the field from the corresponding model class. You can use all available attributes from the original HTML5 @<input>@ element as well. Additional attributes can be set using the @attributes@ attribute.
+p. To use this module, simply replace those @<input>@ elements which need validation with the @#{input /}@ tag and specify the field from the corresponding model class using the @for@ attribute. All other attributes can just be copied from the existing @<input>@ element using the default Groovy syntax.
 
-p. The list of available attributes is as follows:
-
-* *for*: Specifies the field to validate.
-* *value*: Specifies a value for the input element.
-* *attributes*: Additional attributes not yet covered by the @#{input /}@ tag.
-* *type*: Specifies the content type of the input element.
-* *id*: A unique identifier for the element.
-* *class*: A name of a classification, or list of names of classifications, to which the element belongs.
-* *form*: The value of the id attribute on the form with which to associate the element.
-* *placeholder*: A short hint (one word or a short phrase) intended to aid the user when entering data into the control represented by its element.
-* *list*: The value of the id attribute on the datalist with which to associate the element.
-* *dir*: Specifies the element’s text directionality.
-* *draggable*: Specifies whether the element is draggable.
-* *hidden*: Specifies that the element represents an element that is not yet, or is no longer, relevant.
-* *accesskey*: A key label or list of key labels with which to associate the element; each key label represents a keyboard shortcut which UAs can use to activate the element or give focus to the element.
-* *contenteditable*: Specifies whether the contents of the element are editable.
-* *contextmenu*: The value of the id attribute on the menu with which to associate the element as a context menu.
-* *lang*: Specifies the primary language for the contents of the element and for any of the element’s attributes that contain text.
-* *spellcheck*: Specifies whether the element represents an element whose contents are subject to spell checking and grammar checking.
-* *style*: Specifies zero or more CSS declarations that apply to the element.
-* *tabindex*: Specifies whether the element represents an element that is is focusable (that is, an element which is part of the sequence of focusable elements in the document), and the relative order of the element in the sequence of focusable elements in the document.
-* *title*: Advisory information associated with the element.
-* *disabled*: Specifies that the element represents a disabled control.
-* *autocomplete*: Specifies whether the element represents an input control for which a UA is meant to store the value entered by the user (so that the UA can prefill the form later).
-* *autofocus*:Specifies that the element represents a control to which a UA is meant to give focus as soon as the document is loaded.
-* *checked*: Specifies that the element represents a selected control.
-* *step*: Specifies the value granularity of the element’s value.
 
 h2. Example
 
@@ -59,7 +32,9 @@ pre. #{input for:'user.name', id:'YourID', class:'class1 class2' /}
 
 The tag will then output the following HTML code:
 
-pre. <input name="user.name" value="${user?.name}" id="YourID" class="class1 class2" required maxlength="8" pattern="[a-z]*>
+pre. <input name="user.name" value="${user?.name}" id="YourID" class="class1 class2" required maxlength="8" pattern="[a-z]*">
+
+p. Note: @${user?.name}@ will actually be resolved to its current value.
 
 
 h2. <a>Supported Annotations</a>
