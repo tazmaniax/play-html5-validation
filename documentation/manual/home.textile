@@ -32,7 +32,7 @@ pre. #{input for:'user.name', id:'yourID', class:'class1 class2' /}
 
 The tag will then output the following HTML code:
 
-pre. <input name="user.name" value="${user?.name}" id="yourID" class="class1 class2" required maxlength="8" pattern="[a-z]*">
+pre. <input name="user.name" value="${user?.name}" id="yourID" class="class1 class2" required="required" maxlength="8" pattern="[a-z]*">
 
 p. Note: @${user?.name}@ will actually be resolved to its current value.
 
@@ -41,14 +41,14 @@ h2. <a>Supported Annotations</a>
 
 p. The module currently supports the following annotations:
 
-* "Required":http://www.playframework.org/documentation/1.1/validation-builtin#required 
-* "Email":http://www.playframework.org/documentation/1.1/validation-builtin#email 
-* "Min":http://www.playframework.org/documentation/1.1/validation-builtin#min 
-* "Max":http://www.playframework.org/documentation/1.1/validation-builtin#max 
-* "Range":http://www.playframework.org/documentation/1.1/validation-builtin#range 
-* "MaxSize":http://www.playframework.org/documentation/1.1/validation-builtin#maxSize 
-* "URL":http://www.playframework.org/documentation/1.1/validation-builtin#url 
-* "Match":http://www.playframework.org/documentation/1.1/validation-builtin#match 
+* "Required":http://www.playframework.org/documentation/1.2.2/validation-builtin#required 
+* "Email":http://www.playframework.org/documentation/1.2.2/validation-builtin#email 
+* "Min":http://www.playframework.org/documentation/1.2.2/validation-builtin#min 
+* "Max":http://www.playframework.org/documentation/1.2.2/validation-builtin#max 
+* "Range":http://www.playframework.org/documentation/1.2.2/validation-builtin#range 
+* "MaxSize":http://www.playframework.org/documentation/1.2.2/validation-builtin#maxSize 
+* "URL":http://www.playframework.org/documentation/1.2.2/validation-builtin#url 
+* "Match":http://www.playframework.org/documentation/1.2.2/validation-builtin#match 
 
 
 h2. <a>Issue tracking</a>
