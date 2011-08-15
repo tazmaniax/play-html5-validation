@@ -128,10 +128,10 @@ public final class HTML5ValidationTags extends FastTags {
             out.print("<input");
 
             // Print standard attributes
-            printStandardAttributes(args, out);
+            HTML5ValidationTags.printStandardAttributes(args, out);
 
             // Print validation attributes
-            printValidationAttributes(args, out);
+            HTML5ValidationTags.printValidationAttributes(args, out);
 
             // Close input tag
             out.println(">");
@@ -155,8 +155,8 @@ public final class HTML5ValidationTags extends FastTags {
      */
     private static void printStandardAttributes(final Map<?, ?> args, final PrintWriter out) {
         for (final Object attribute : args.keySet()) {
-            if (!"for".equalsIgnoreCase(attribute.toString()) && (args.get(attribute) != null)) {
-                printAttribute(attribute.toString(), args.get(attribute).toString(), out);
+            if (!"for".equalsIgnoreCase(attribute.toString()) && args.get(attribute) != null) {
+                HTML5ValidationTags.printAttribute(attribute.toString(), args.get(attribute).toString(), out);
             }
         }
     }
@@ -170,8 +170,9 @@ public final class HTML5ValidationTags extends FastTags {
      * @throws NoSuchFieldException         Thrown when the field can't be reached.
      * @throws ClassNotFoundException 		Thrown when the class could not be found.
      */
-    private static void printValidationAttributes(final Map<?, ?> args, final PrintWriter out) throws ClassNotFoundException,
-    SecurityException, NoSuchFieldException {
+    private static void printValidationAttributes(final Map<?, ?> args, final PrintWriter out)
+            throws ClassNotFoundException,
+            SecurityException, NoSuchFieldException {
         final String fieldname = args.get("for").toString();
         final String[] components = fieldname.split("\\.");
 
@@ -184,27 +185,32 @@ public final class HTML5ValidationTags extends FastTags {
             }
         }
 
+        // Prevent questionable NPE
+        if (clazz == null) {
+            return;
+        }
+
         // Find field
         final Field field = clazz.getField(components[1]);
 
         // Print the name of the field
-        printAttribute("name", fieldname, out);
+        HTML5ValidationTags.printAttribute("name", fieldname, out);
 
         // Print the value of the field
         final Object object = RenderArgs.current().get(components[0], clazz);
-        if (object != null){
+        if (object != null) {
             try {
                 try {
                     // Try to use the getter if any exists
                     final Method getter = clazz.getMethod("get" + JavaExtensions.capFirst(field.getName()));
 
                     // Print the value returned by the getter
-                    printAttribute("value", getter.invoke(object), out);
-                } catch (final NoSuchMethodException  e) {
+                    HTML5ValidationTags.printAttribute("value", getter.invoke(object), out);
+                } catch (final NoSuchMethodException exception) {
                     // No getter exists
 
                     // Print the current value of the field inside the current object
-                    printAttribute("value", field.get(object), out);
+                    HTML5ValidationTags.printAttribute("value", field.get(object), out);
                 }
             } catch (final IllegalAccessException exception) {
                 // print nothing
@@ -215,46 +221,46 @@ public final class HTML5ValidationTags extends FastTags {
 
         // Mark readonly
         if (Modifier.isFinal(field.getModifiers()) || args.containsKey("readonly")) {
-            printAttribute("readonly", "readonly", out);
+            HTML5ValidationTags.printAttribute("readonly", "readonly", out);
         }
 
         // Print the validation data
         if (field.isAnnotationPresent(Required.class)) {
-            printAttribute("required", "required", out);
+            HTML5ValidationTags.printAttribute("required", "required", out);
         }
 
         if (field.isAnnotationPresent(Min.class)) {
             final Min min = field.getAnnotation(Min.class);
-            printAttribute("min", String.valueOf(min.value()), out);
+            HTML5ValidationTags.printAttribute("min", String.valueOf(min.value()), out);
         }
 
         if (field.isAnnotationPresent(Max.class)) {
             final Max max = field.getAnnotation(Max.class);
-            printAttribute("max", String.valueOf(max.value()), out);
+            HTML5ValidationTags.printAttribute("max", String.valueOf(max.value()), out);
         }
 
         if (field.isAnnotationPresent(Range.class)) {
             final Range range = field.getAnnotation(Range.class);
-            printAttribute("min", String.valueOf(range.min()), out);
-            printAttribute("max", String.valueOf(range.max()), out);
+            HTML5ValidationTags.printAttribute("min", String.valueOf(range.min()), out);
+            HTML5ValidationTags.printAttribute("max", String.valueOf(range.max()), out);
         }
 
         if (field.isAnnotationPresent(MaxSize.class)) {
             final MaxSize maxSize = field.getAnnotation(MaxSize.class);
-            printAttribute("maxlength", String.valueOf(maxSize.value()), out);
+            HTML5ValidationTags.printAttribute("maxlength", String.valueOf(maxSize.value()), out);
         }
 
         if (field.isAnnotationPresent(Match.class)) {
             final Match match = field.getAnnotation(Match.class);
-            printAttribute("pattern", match.value(), out);
+            HTML5ValidationTags.printAttribute("pattern", match.value(), out);
         }
 
         if (field.isAnnotationPresent(URL.class)) {
-            printAttribute("type", "url", out);
+            HTML5ValidationTags.printAttribute("type", "url", out);
         }
 
         if (field.isAnnotationPresent(Email.class)) {
-            printAttribute("type", "email", out);
+            HTML5ValidationTags.printAttribute("type", "email", out);
         }
     }
 
