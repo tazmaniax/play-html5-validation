@@ -106,7 +106,6 @@ import play.templates.JavaExtensions;
  * @see     <a href="http://diveintohtml5.org/forms.html">Mark Pilgrim on HTML5 Forms</a>
  */
 @SuppressWarnings("nls")
-@FastTags.Namespace("html5")
 public final class HTML5ValidationTags extends FastTags {
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
