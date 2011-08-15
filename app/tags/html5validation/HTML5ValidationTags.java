@@ -99,9 +99,9 @@ import play.templates.JavaExtensions;
  * </ul>
  *
  * @author  Sebastian Hoß (mail@shoss.de)
- * @version 1.0
+ * @version 1.2.2
  * @see     <a href="http://www.w3.org/TR/html-markup/input.html">HTML5 Input Element</a>
- * @see     <a href="http://www.playframework.org/documentation/1.1/validation-builtin">Built-in
+ * @see     <a href="http://www.playframework.org/documentation/1.2.2/validation-builtin">Built-in
   				validations by Play!</a>
  * @see     <a href="http://diveintohtml5.org/forms.html">Mark Pilgrim on HTML5 Forms</a>
  */
