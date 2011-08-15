@@ -1,11 +1,11 @@
 h1. HTML5 Validation
 
-p. The HTML5 validation module provides a simple @#{html5.input /}@ tag which can be used as a drop-in replacement for existing HTML @<input>@ elements. The @#{html5.input /}@  tag will try to map existing data validation annotations from your Play! model to the HTML input element and thus provide near codeless client-side validation without even using JavaScript. On top of that it supports all available attributes from the original HTML input element and autofills the @name@ attribute by default.
+p. The HTML5 validation module provides a simple @#{input /}@ tag which can be used as a drop-in replacement for existing HTML @<input>@ elements. The @#{input /}@  tag will try to map existing data validation annotations from your Play! model to the HTML input element and thus provide near codeless client-side validation without even using JavaScript. On top of that it supports all available attributes from the original HTML input element and autofills the @name@ attribute by default.
 
 
 h2. <a>Usage</a>
 
-p. To use this module, simply replace those @<input>@ elements which need validation with the @#{html5.input /}@ tag and specify the field from the corresponding model class using the @for@ attribute. All other attributes can just be copied from the existing @<input>@ element using the default Groovy syntax.
+p. To use this module, simply replace those @<input>@ elements which need validation with the @#{input /}@ tag and specify the field from the corresponding model class using the @for@ attribute. All other attributes can just be copied from the existing @<input>@ element using the default Groovy syntax.
 
 
 h2. Example
@@ -20,7 +20,7 @@ public String name;
 
 p. you can replace your existing @<input>@ element with the following:
 
-pre. #{html5.input for:'user.name', id:'yourID', class:'class1 class2' /}
+pre. #{input for:'user.name', id:'yourID', class:'class1 class2' /}
 
 The tag will then output the following HTML code:
 
