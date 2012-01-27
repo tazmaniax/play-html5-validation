@@ -28,6 +28,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
 import java.util.Map;
 
 import play.Play;
@@ -36,6 +37,7 @@ import play.data.validation.Match;
 import play.data.validation.Max;
 import play.data.validation.MaxSize;
 import play.data.validation.Min;
+import play.data.validation.Password;
 import play.data.validation.Range;
 import play.data.validation.Required;
 import play.data.validation.URL;
@@ -82,7 +84,7 @@ import play.templates.JavaExtensions;
  *      public String name;</code></p><br>
  *
  *      <p>and you pass an instance of that class called <em>user</em> around, you then can
- *      specify the field from that instance inside the <code>#{html5.input /}</code> as follows:</p>
+ *      specify the field from that instance inside the <code>#{input /}</code> as follows:</p>
  *
  *      <p><code>#{input for:'user.name', id:'yourID', class:'class1 clas2' /}</code></p><br>
  *
@@ -99,13 +101,13 @@ import play.templates.JavaExtensions;
  * </ul>
  *
  * @author  Sebastian Hoß (mail@shoss.de)
- * @version 1.2.2
  * @see     <a href="http://www.w3.org/TR/html-markup/input.html">HTML5 Input Element</a>
- * @see     <a href="http://www.playframework.org/documentation/1.2.2/validation-builtin">Built-in
+ * @see     <a href="http://www.playframework.org/documentation/1.1/validation-builtin">Built-in
   				validations by Play!</a>
  * @see     <a href="http://diveintohtml5.org/forms.html">Mark Pilgrim on HTML5 Forms</a>
  */
 @SuppressWarnings("nls")
+@FastTags.Namespace("my.tags")
 public final class HTML5ValidationTags extends FastTags {
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -126,141 +128,125 @@ public final class HTML5ValidationTags extends FastTags {
         try {
             // Open input tag
             out.print("<input");
+            
+            Map<String, String> renderArgs = new HashMap<String, String>();
+            // Copy all arguments to render arguments, except for 'for' argument.
+            for (final Object attribute : args.keySet()) {
+                if (!"for".equalsIgnoreCase(attribute.toString()) && (args.get(attribute) != null)) {
+                	renderArgs.put(attribute.toString(), args.get(attribute).toString());
+                }
+            }
+            
+            final String fieldname = args.get("for").toString();
+            final String[] pieces = fieldname.split("\\.");
+            Object obj = template.getProperty(pieces[0]);   
 
-            // Print standard attributes
-            HTML5ValidationTags.printStandardAttributes(args, out);
+            Field field = null;
+            Object value = null;
+            
+			if (obj != null) {
+				if (pieces.length > 1) {
+					for (int i = 1; i < pieces.length; i++) {
+						try {
+							Field f = obj.getClass().getField(pieces[i]);
+							if (i == (pieces.length - 1)) {
+								field = f;
+								try {
+									Method getter = obj.getClass().getMethod("get" + JavaExtensions.capFirst(f.getName()));
+									value = getter.invoke(obj, new Object[0]);
+								} catch (NoSuchMethodException e) {
+									value = f.get(obj).toString();
+								}
+							} else {
+								obj = f.get(obj);
+							}
+						} catch (Exception e) {
+							// if there is a problem reading the field we don't set any value
+						}
+					}
+				} else {
+					value = obj;
+				}
+			}
+			
+			if (fieldname != null && renderArgs.get("name") == null) {
+				renderArgs.put("name", fieldname);
+			}
+			
+			if (value != null && renderArgs.get("value") == null) {
+				renderArgs.put("value", value.toString());
+			}
+			
+			if (field != null) {
+		        // Mark readonly
+		        if (Modifier.isFinal(field.getModifiers()) || args.containsKey("readonly")) {
+		        	renderArgs.put("readonly", "readonly");
+		        }
 
-            // Print validation attributes
-            HTML5ValidationTags.printValidationAttributes(args, out);
+		        // Print the validation data
+		        if (field.isAnnotationPresent(Required.class)) {
+		        	renderArgs.put("required", "required");
+		        }
+
+		        if (field.isAnnotationPresent(Min.class) && renderArgs.get("min") == null) {
+		            final Min min = field.getAnnotation(Min.class);
+		            renderArgs.put("min", String.valueOf(min.value()));
+		        }
+
+		        if (field.isAnnotationPresent(Max.class) && renderArgs.get("max") == null) {
+		            final Max max = field.getAnnotation(Max.class);
+		            renderArgs.put("max", String.valueOf(max.value()));
+		        }
+
+		        if (field.isAnnotationPresent(Range.class)) {
+		            final Range range = field.getAnnotation(Range.class);
+		            if (renderArgs.get("min") == null) {
+		            	renderArgs.put("min", String.valueOf(range.min()));
+		            }
+		            
+		            if (renderArgs.get("max") == null) {
+		            	renderArgs.put("max", String.valueOf(range.max()));
+		            }
+		        }
+
+		        if (field.isAnnotationPresent(MaxSize.class) && renderArgs.get("maxlength") == null) {
+		            final MaxSize maxSize = field.getAnnotation(MaxSize.class);
+		            renderArgs.put("maxlength", String.valueOf(maxSize.value()));
+		        }
+
+		        if (field.isAnnotationPresent(Match.class) && renderArgs.get("pattern") == null) {
+		            final Match match = field.getAnnotation(Match.class);
+		            renderArgs.put("pattern", match.value());
+		        }
+
+		        if (renderArgs.get("type") == null) {
+			        if (field.isAnnotationPresent(URL.class)) {
+			        	renderArgs.put("type", "url");
+			        } else if (field.isAnnotationPresent(Email.class)) {
+			        	renderArgs.put("type", "email");
+			        } else if (field.isAnnotationPresent(Password.class)) {
+			        	renderArgs.put("type", "password");
+			        } else if (CharSequence.class.isAssignableFrom(field.getType())) {
+			        	renderArgs.put("type", "text");
+			        } else if (Number.class.isAssignableFrom(field.getType())) {
+			        	renderArgs.put("type", "number");
+			        }
+		        }
+			}
+
+	        for (final Object attrKey : renderArgs.keySet()) {
+	            if (renderArgs.get(attrKey) != null) {
+	                printAttribute(attrKey.toString(), renderArgs.get(attrKey).toString(), out);
+	            }
+	        }
 
             // Close input tag
             out.println(">");
 
         } catch (final SecurityException exception) {
             throw new TemplateCompilationException(template.template, Integer.valueOf(fromLine), exception.getMessage());
-        } catch (final NoSuchFieldException exception) {
-            throw new TemplateCompilationException(template.template, Integer.valueOf(fromLine), exception.getMessage());
         } catch (final IllegalArgumentException exception) {
             throw new TemplateCompilationException(template.template, Integer.valueOf(fromLine), exception.getMessage());
-        } catch (final ClassNotFoundException exception) {
-            throw new TemplateCompilationException(template.template, Integer.valueOf(fromLine), exception.getMessage());
-        }
-    }
-
-    /**
-     * <p>Print all standard attributes which have to be specified by the user itself.</p>
-     *
-     * @param args  The map containing the wanted attributes.
-     * @param out   The print writer to use.
-     */
-    private static void printStandardAttributes(final Map<?, ?> args, final PrintWriter out) {
-        for (final Object attribute : args.keySet()) {
-            if (!"for".equalsIgnoreCase(attribute.toString()) && args.get(attribute) != null) {
-                HTML5ValidationTags.printAttribute(attribute.toString(), args.get(attribute).toString(), out);
-            }
-        }
-    }
-
-    /**
-     * <p>Prints validation attributes for a given field.</p>
-     * 
-     * @param args                          The tag attributes.
-     * @param out                           The print writer to use.
-     * @throws SecurityException            Thrown when either the field or the getter for the field can't be reached.
-     * @throws NoSuchFieldException         Thrown when the field can't be reached.
-     * @throws ClassNotFoundException 		Thrown when the class could not be found.
-     */
-    private static void printValidationAttributes(final Map<?, ?> args, final PrintWriter out)
-            throws ClassNotFoundException,
-            SecurityException, NoSuchFieldException {
-        final String fieldname = args.get("for").toString();
-        final String[] components = fieldname.split("\\.");
-
-        // Find class
-        Class<?> clazz = null;
-
-        for (final Class<?> current : Play.classloader.getAllClasses()) {
-            if (current.getSimpleName().equalsIgnoreCase(components[0])) {
-                clazz = current;
-            }
-        }
-
-        // Prevent questionable NPE
-        if (clazz == null) {
-            return;
-        }
-
-        // Find field
-        final Field field = clazz.getField(components[1]);
-
-        // Print the name of the field
-        HTML5ValidationTags.printAttribute("name", fieldname, out);
-
-        // Print the value of the field
-        final Object object = RenderArgs.current().get(components[0], clazz);
-        if (object != null) {
-            try {
-                try {
-                    // Try to use the getter if any exists
-                    final Method getter = clazz.getMethod("get" + JavaExtensions.capFirst(field.getName()));
-
-                    // Print the value returned by the getter
-                    HTML5ValidationTags.printAttribute("value", getter.invoke(object), out);
-                } catch (final NoSuchMethodException exception) {
-                    // No getter exists
-
-                    // Print the current value of the field inside the current object
-                    HTML5ValidationTags.printAttribute("value", field.get(object), out);
-                }
-            } catch (final IllegalAccessException exception) {
-                // print nothing
-            } catch (final InvocationTargetException exception) {
-                // print nothing
-            }
-        }
-
-        // Mark readonly
-        if (Modifier.isFinal(field.getModifiers()) || args.containsKey("readonly")) {
-            HTML5ValidationTags.printAttribute("readonly", "readonly", out);
-        }
-
-        // Print the validation data
-        if (field.isAnnotationPresent(Required.class)) {
-            HTML5ValidationTags.printAttribute("required", "required", out);
-        }
-
-        if (field.isAnnotationPresent(Min.class)) {
-            final Min min = field.getAnnotation(Min.class);
-            HTML5ValidationTags.printAttribute("min", String.valueOf(min.value()), out);
-        }
-
-        if (field.isAnnotationPresent(Max.class)) {
-            final Max max = field.getAnnotation(Max.class);
-            HTML5ValidationTags.printAttribute("max", String.valueOf(max.value()), out);
-        }
-
-        if (field.isAnnotationPresent(Range.class)) {
-            final Range range = field.getAnnotation(Range.class);
-            HTML5ValidationTags.printAttribute("min", String.valueOf(range.min()), out);
-            HTML5ValidationTags.printAttribute("max", String.valueOf(range.max()), out);
-        }
-
-        if (field.isAnnotationPresent(MaxSize.class)) {
-            final MaxSize maxSize = field.getAnnotation(MaxSize.class);
-            HTML5ValidationTags.printAttribute("maxlength", String.valueOf(maxSize.value()), out);
-        }
-
-        if (field.isAnnotationPresent(Match.class)) {
-            final Match match = field.getAnnotation(Match.class);
-            HTML5ValidationTags.printAttribute("pattern", match.value(), out);
-        }
-
-        if (field.isAnnotationPresent(URL.class)) {
-            HTML5ValidationTags.printAttribute("type", "url", out);
-        }
-
-        if (field.isAnnotationPresent(Email.class)) {
-            HTML5ValidationTags.printAttribute("type", "email", out);
         }
     }
 
