@@ -50,10 +50,10 @@ import play.templates.JavaExtensions;
 
 /**
  * <h1>Overview</h1>
- * <p>The HTML5 validation tags provide a simple <code>#{input /}</code> tag which can be used as a drop-in
+ * <p>The HTML5 validation tags provide a simple <code>#{html5.input /}</code> tag which can be used as a drop-in
  * replacement for existing HTML5 <code>&lt;input&gt;</code> elements.</p>
  *
- * <p>The <code>#{input /}</code> tag will try to map existing data validation annotations from your Play! model
+ * <p>The <code>#{html5.input /}</code> tag will try to map existing data validation annotations from your Play! model
  * to the HTML5 input element and thus provide near codeless client-side validation without using JavaScript.</p>
  *
  * <p>On top of that it supports all available attributes from the original HTML5 input element and auto-
@@ -62,14 +62,14 @@ import play.templates.JavaExtensions;
  * <p>For that to work you have to specify the model instance and its field you want to map by using the
  * <em>for</em> attribute:<br>
  * <br>
- * <code>#{input for:'user.name' /}</code></p>
+ * <code>#{html5.input for:'user.name' /}</code></p>
  * 
  * <h1>Caveats</h1>
  * <ul>
  *  <li>The MinSize validator can not be mapped to any HTML5 attribute currently.</li>
- *  <li>Contrary to HTML5 input elements the <code>#{input /}</code> tag must be properly closed.</li>
- *  <li>Currently it is possible to define each attribute multiple times since this class does not
- *  check or sanitize the input.</li>
+ *  <li>Contrary to HTML5 input elements the <code>#{html5.input /}</code> tag must be properly closed.</li>
+ *  <li>Attributes specified in the tag have priority over the validation annotations.</li>
+ *  <li>There is no checking to ensure that attributes are valid for the input type - if the annotation exists the attribute is written</li>
  * </ul>
  *
  * <h1>Examples</h1>
@@ -84,9 +84,9 @@ import play.templates.JavaExtensions;
  *      public String name;</code></p><br>
  *
  *      <p>and you pass an instance of that class called <em>user</em> around, you then can
- *      specify the field from that instance inside the <code>#{input /}</code> as follows:</p>
+ *      specify the field from that instance inside the <code>#{html5.input /}</code> as follows:</p>
  *
- *      <p><code>#{input for:'user.name', id:'yourID', class:'class1 clas2' /}</code></p><br>
+ *      <p><code>#{html5.input for:'user.name', id:'yourID', class:'class1 clas2' /}</code></p><br>
  *
  *      <p>The tag will then output the following HTML code:</p><br>
  *
@@ -101,13 +101,14 @@ import play.templates.JavaExtensions;
  * </ul>
  *
  * @author  Sebastian Hoß (mail@shoss.de)
+ * @author  Chris Webb (chris@spinthewebb.com)
  * @see     <a href="http://www.w3.org/TR/html-markup/input.html">HTML5 Input Element</a>
- * @see     <a href="http://www.playframework.org/documentation/1.1/validation-builtin">Built-in
+ * @see     <a href="http://www.playframework.org/documentation/1.2.4/validation-builtin">Built-in
   				validations by Play!</a>
  * @see     <a href="http://diveintohtml5.org/forms.html">Mark Pilgrim on HTML5 Forms</a>
  */
 @SuppressWarnings("nls")
-@FastTags.Namespace("my.tags")
+@FastTags.Namespace("html5")
 public final class HTML5ValidationTags extends FastTags {
 
     // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
